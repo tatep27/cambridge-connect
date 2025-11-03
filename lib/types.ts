@@ -30,12 +30,11 @@ export interface Organization {
   name: string;
   type: OrgType[];
   description: string; // public-facing description
-  descriptionForOrgs: string; // internal description for orgs
   website?: string;
   email?: string;
   location?: string; // address or area in Cambridge (not required per PRD)
   contactInternal: string; // internal contact info
-  currentNeedsInternal: NeedType[]; // what they need
+  currentNeedsInternal: string; // what they need (sentence or two)
   resourcesOffered: string; // what they offer (free-form text)
 }
 

@@ -46,22 +46,30 @@
 - **NEW:** Join Forum functionality (dropdown menu → "Join a Forum" → search dialog)
 - Create/Join dropdown menu (replaces simple + button)
 
-### ⏳ Phase 1B: Dashboard Page - PENDING
-- Show recent forum activity
-- Will reuse PostCard/ActivityFeed components from Forums
+### ✅ Phase 1B: Dashboard Page - COMPLETE
+- Shows recent forum activity from across all forums
+- PostCard component: compact post display with forum info, truncated content, reply count
+- ActivityFeed component: displays list of recent posts with loading and empty states
+- Enhanced getRecentActivity() API: returns posts with forum title and category
+- Dashboard is now the home screen (root redirects to /dashboard)
+- **Tests:** 27 tests covering PostCard, ActivityFeed, and Dashboard page
 
-### ⏳ Phase 1E: AI Resource Finder - PENDING
-- Placeholder "Coming soon" page
+### ✅ Phase 1E: AI Resource Finder - COMPLETE
+- Moved to fixed top search bar in DashboardLayout
+- Search bar persists across all pages (sticky header)
+- Placeholder page updated to reference search bar
 
-### ⏳ Phase 1F: Settings - PENDING
-- Placeholder page
+### ✅ Phase 1F: Settings - COMPLETE
+- Moved to Profile dropdown menu in header
+- Profile dropdown includes: Profile, Settings, Sign Out
+- Removed from sidebar navigation
 
 ---
 
 ## Test Suite
 Located in `tests/` folder:
-- 67+ tests passing
-- Coverage: utilities, API layer, components, mock data validation
+- 114 tests passing across 14 test files
+- Coverage: utilities, API layer, components, mock data validation, pages
 - Framework: Vitest + React Testing Library
 - Run: `npm test`, `npm run test:watch`, `npm run test:coverage`
 
@@ -72,74 +80,115 @@ Located in `tests/` folder:
 ```
 cambridge-connect/
 ├── app/
-│   ├── dashboard/page.tsx          # PENDING
-│   ├── organizations/page.tsx      # ✅ Complete
-│   ├── forums/page.tsx              # ✅ Complete
-│   ├── ai-resource-finder/page.tsx  # PENDING
-│   ├── settings/page.tsx            # PENDING
+│   ├── page.tsx                     # ✅ Redirects to /dashboard
+│   ├── dashboard/page.tsx           # ✅ Complete - recent activity feed
+│   ├── organizations/
+│   │   ├── page.tsx                 # ✅ Complete - browse with search/filters
+│   │   └── [id]/page.tsx            # ✅ Complete - organization profile view
+│   ├── forums/page.tsx              # ✅ Complete - split view with URL params
+│   ├── ai-resource-finder/page.tsx  # ✅ Complete - references search bar
+│   ├── settings/page.tsx            # ✅ Complete - accessed via profile menu
 │   └── layout.tsx                   # ✅
 ├── components/
 │   ├── layout/
-│   │   └── DashboardLayout.tsx      # ✅ Shared sidebar layout
+│   │   └── DashboardLayout.tsx      # ✅ Fixed sidebar + sticky header with AI search & profile
 │   ├── organizations/
-│   │   └── OrganizationCard.tsx     # ✅
+│   │   ├── OrganizationCard.tsx    # ✅ Clickable card linking to profile
+│   │   └── OrganizationProfile.tsx   # ✅ Complete organization detail view
 │   ├── forums/
 │   │   ├── ForumList.tsx            # ✅ With dropdown menu
 │   │   ├── ForumDetail.tsx          # ✅
 │   │   ├── PostThread.tsx           # ✅
-│   │   ├── CreateForumDialog.tsx    # ✅ NEW
-│   │   └── JoinForumDialog.tsx      # ✅ NEW
+│   │   ├── PostCard.tsx             # ✅ NEW - compact post for dashboard
+│   │   ├── ActivityFeed.tsx         # ✅ NEW - activity feed component
+│   │   ├── CreateForumDialog.tsx    # ✅
+│   │   └── JoinForumDialog.tsx      # ✅
 │   └── ui/                          # shadcn/ui components
 ├── lib/
 │   ├── api/
-│   │   ├── organizations.ts         # ✅ With filtering/search
-│   │   └── forums.ts                # ✅ With createForum()
+│   │   ├── organizations.ts         # ✅ With filtering/search, getOrganization()
+│   │   └── forums.ts                # ✅ With createForum(), getRecentActivity()
 │   ├── data/
-│   │   ├── mockOrganizations.ts     # ✅ 8 orgs
+│   │   ├── mockOrganizations.ts     # ✅ 8 orgs (updated structure)
 │   │   └── mockForums.ts            # ✅ 6 forums, 13 posts
-│   ├── types.ts                     # ✅ All TypeScript interfaces
+│   ├── types.ts                     # ✅ All TypeScript interfaces (updated Organization)
 │   └── utils.ts                     # ✅ cn(), formatArrayDisplay()
-├── tests/                           # ✅ Test suite
+├── tests/                           # ✅ 114 tests passing
+│   ├── app/
+│   │   ├── dashboard/
+│   │   └── organizations/[id]/
+│   ├── components/
+│   │   ├── forums/                  # PostCard, ActivityFeed tests
+│   │   └── organizations/            # OrganizationCard, OrganizationProfile tests
+│   └── lib/
 └── implementation_notes/            # Phase documentation
 ```
 
 ---
 
-## Recent Changes (Last Session)
+## Recent Changes (Current Session)
 
-1. **Forum Creation Feature:**
-   - Added CreateForumDialog with validation
-   - Added createForum() API function (in-memory storage)
-   - Dropdown menu in ForumList header
+1. **Phase 1B: Dashboard Page Implementation:**
+   - Created PostCard component for compact post display
+   - Created ActivityFeed component with loading/empty states
+   - Enhanced getRecentActivity() API to include forum info (ForumPostWithForum)
+   - Dashboard shows recent forum activity from all forums
+   - Root page now redirects to dashboard
 
-2. **Join Forum Feature:**
-   - Added JoinForumDialog with search functionality
-   - Real-time filtering by title/description
-   - "Join" button selects forum
+2. **Layout Improvements:**
+   - Fixed top bar with AI search/prompt bar (persists across pages)
+   - Profile dropdown menu (right side) with Profile, Settings, Sign Out
+   - Fixed sidebar navigation
+   - Removed "AI Resource Finder" and "Settings" from sidebar (moved to top bar)
 
-3. **Rebranding:**
-   - Renamed "Cambridge Org Hub" → "Cambridge Connect" throughout
-   - Updated package.json name
+3. **Organization Profile View:**
+   - Created `/organizations/[id]` dynamic route
+   - Created OrganizationProfile component (single card layout)
+   - OrganizationCard now clickable, links to profile
+   - All organization info displayed in unified card layout
+   - "Reach Out to Us For" header for resources section
+
+4. **Data Structure Updates:**
+   - Removed `descriptionForOrgs` from Organization interface
+   - Changed `currentNeedsInternal` from `NeedType[]` to `string` (descriptive text)
+   - Updated all 8 mock organizations with new structure
+   - Removed needs-based filtering from API
+
+5. **Test Coverage:**
+   - Added 27 new tests (PostCard, ActivityFeed, Dashboard page, OrganizationProfile, Organization page)
+   - Updated existing tests for new data structure
+   - All 114 tests passing
+
+6. **Build & Development Improvements:**
+   - Added cache-clearing scripts (`clean`, `dev:clean`, `build:clean`)
+   - Updated Next.js webpack config for better vendor chunk handling
+   - Improved .gitignore for cache directories
+   - Fixes recurring vendor-chunks build cache errors
 
 ---
 
 ## Design Decisions Made
 
 1. **Organization resourcesOffered:** Changed from `ResourceType[]` to `string` (free-form text)
-2. **Forum sidebar info:** Shows member count + messages today (removed last activity date)
-3. **Forum creation:** Dropdown menu with "Join" and "Create" options
-4. **UI library:** shadcn/ui (New York style, neutral theme)
-5. **Layout:** Fixed-width sidebar, full-width main content
+2. **Organization currentNeedsInternal:** Changed from `NeedType[]` to `string` (descriptive sentence)
+3. **Organization descriptionForOrgs:** Removed - consolidated into single description
+4. **Forum sidebar info:** Shows member count + messages today (removed last activity date)
+5. **Forum creation:** Dropdown menu with "Join" and "Create" options
+6. **UI library:** shadcn/ui (New York style, neutral theme)
+7. **Layout:** Fixed sidebar + sticky top bar with AI search and profile menu
+8. **Dashboard:** Root page redirects to /dashboard
+9. **Organization profile:** All info in single unified card with section dividers
+10. **Resources header:** "Reach Out to Us For" (instead of "Resources Offered")
 
 ---
 
 ## What's Next
 
-1. **Sub-Phase 1B:** Dashboard page (show recent forum activity)
-2. **Sub-Phase 1E:** AI Resource Finder placeholder
-3. **Sub-Phase 1F:** Settings placeholder
-4. **Phase 1 Wrap-up:** Final tests, git commit
-5. **Phase 2:** API routes (mock-backed, ready for DB later)
+1. **Phase 1 Wrap-up:** Final polish, documentation
+2. **Phase 2:** API routes (mock-backed, ready for DB later)
+3. **AI Resource Finder:** Implement actual search/chat functionality in top bar
+4. **Settings Page:** Build out settings functionality
+5. **Profile Page:** User/organization profile management
 
 ---
 
@@ -153,5 +202,13 @@ When starting a new chat:
 ---
 
 **Last Updated:** Current session
-**Git Status:** Ready to commit Phase 1D + forum creation/join features
+**Git Status:** Ready to commit Phase 1B + layout improvements + organization profiles
+
+## Build & Development Scripts
+
+- `npm run clean` - Clear build cache (.next and node_modules/.cache)
+- `npm run dev:clean` - Clear cache then start dev server
+- `npm run build:clean` - Clear cache then build for production
+
+Use these when encountering vendor-chunks build errors.
 

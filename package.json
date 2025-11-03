@@ -10,7 +10,10 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "clean": "rm -rf .next node_modules/.cache",
+    "dev:clean": "npm run clean && npm run dev",
+    "build:clean": "npm run clean && npm run build"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",

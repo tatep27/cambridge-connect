@@ -51,11 +51,30 @@ export async function getPostReplies(postId: string): Promise<ForumReply[]> {
 }
 
 /**
- * Get recent activity (most recent posts across all forums)
+ * Extended post type with forum information for dashboard display
  */
-export async function getRecentActivity(limit: number = 10): Promise<ForumPost[]> {
+export interface ForumPostWithForum extends ForumPost {
+  forumTitle: string;
+  forumCategory: string;
+}
+
+/**
+ * Get recent activity (most recent posts across all forums)
+ * Includes forum title and category for dashboard display
+ */
+export async function getRecentActivity(limit: number = 10): Promise<ForumPostWithForum[]> {
   await new Promise(resolve => setTimeout(resolve, 100));
+  const allForums = [...mockForums, ...createdForums];
+  
   return [...mockPosts]
+    .map(post => {
+      const forum = allForums.find(f => f.id === post.forumId);
+      return {
+        ...post,
+        forumTitle: forum?.title || 'Unknown Forum',
+        forumCategory: forum?.category || 'general',
+      };
+    })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit);
 }

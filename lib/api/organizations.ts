@@ -1,9 +1,8 @@
-import { Organization, OrgType, NeedType } from "../types";
+import { Organization, OrgType } from "../types";
 import { mockOrganizations } from "../data/mockOrganizations";
 
 export interface OrganizationFilters {
   type?: OrgType[];
-  needs?: NeedType[];
   search?: string;
 }
 
@@ -23,21 +22,15 @@ export async function getOrganizations(filters?: OrganizationFilters): Promise<O
     );
   }
 
-  // Filter by needs
-  if (filters?.needs && filters.needs.length > 0) {
-    results = results.filter(org => 
-      org.currentNeedsInternal.some(need => filters.needs!.includes(need))
-    );
-  }
-
-  // Search by name, description, location, or resources offered
+  // Search by name, description, location, resources offered, or current needs
   if (filters?.search) {
     const searchLower = filters.search.toLowerCase();
     results = results.filter(org => 
       org.name.toLowerCase().includes(searchLower) ||
       org.description.toLowerCase().includes(searchLower) ||
       org.location?.toLowerCase().includes(searchLower) ||
-      org.resourcesOffered.toLowerCase().includes(searchLower)
+      org.resourcesOffered.toLowerCase().includes(searchLower) ||
+      org.currentNeedsInternal.toLowerCase().includes(searchLower)
     );
   }
 
@@ -59,10 +52,4 @@ export function getOrgTypes(): OrgType[] {
   return ["nonprofit", "public_library", "community_center", "grassroots", "arts_venue", "other"];
 }
 
-/**
- * Get unique values for needs (for filter UI)
- */
-export function getNeedTypes(): NeedType[] {
-  return ["space", "volunteers", "partnerships", "funding", "expertise", "equipment", "marketing", "other"];
-}
 

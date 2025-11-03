@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getOrganizations, getOrgTypes, getNeedTypes, getOrganization } from '@/lib/api/organizations';
+import { getOrganizations, getOrgTypes, getOrganization } from '@/lib/api/organizations';
 
 describe('getOrganizations', () => {
   it('should return all organizations when no filters applied', async () => {
@@ -28,14 +28,6 @@ describe('getOrganizations', () => {
     });
   });
 
-  it('should filter by needs', async () => {
-    const orgs = await getOrganizations({ needs: ['volunteers'] });
-    expect(orgs.length).toBeGreaterThan(0);
-    orgs.forEach(org => {
-      expect(org.currentNeedsInternal).toContain('volunteers');
-    });
-  });
-
   it('should search by name', async () => {
     const orgs = await getOrganizations({ search: 'Cambridge' });
     expect(orgs.length).toBeGreaterThan(0);
@@ -56,22 +48,21 @@ describe('getOrganizations', () => {
     expect(hasSpaceMention).toBe(true);
   });
 
-  it('should combine multiple filters', async () => {
+  it('should combine type and search filters', async () => {
     const orgs = await getOrganizations({ 
       type: ['nonprofit'],
-      needs: ['volunteers'],
       search: 'Cambridge'
     });
     expect(orgs.length).toBeGreaterThan(0);
     orgs.forEach(org => {
       expect(org.type).toContain('nonprofit');
-      expect(org.currentNeedsInternal).toContain('volunteers');
-      // Search matches name, description, location, or resourcesOffered
+      // Search matches name, description, location, resourcesOffered, or currentNeedsInternal
       const searchMatches = 
         org.name.toLowerCase().includes('cambridge') ||
         org.description.toLowerCase().includes('cambridge') ||
         org.location?.toLowerCase().includes('cambridge') ||
-        org.resourcesOffered.toLowerCase().includes('cambridge');
+        org.resourcesOffered.toLowerCase().includes('cambridge') ||
+        org.currentNeedsInternal.toLowerCase().includes('cambridge');
       expect(searchMatches).toBe(true);
     });
   });
@@ -104,12 +95,14 @@ describe('getOrgTypes', () => {
   });
 });
 
-describe('getNeedTypes', () => {
-  it('should return array of need types', () => {
-    const types = getNeedTypes();
-    expect(Array.isArray(types)).toBe(true);
-    expect(types.length).toBeGreaterThan(0);
-    expect(types).toContain('volunteers');
+describe('search in currentNeedsInternal', () => {
+  it('should search in current needs text', async () => {
+    const orgs = await getOrganizations({ search: 'volunteers' });
+    expect(orgs.length).toBeGreaterThan(0);
+    const hasVolunteersMatch = orgs.some(org => 
+      org.currentNeedsInternal.toLowerCase().includes('volunteers')
+    );
+    expect(hasVolunteersMatch).toBe(true);
   });
 });
 

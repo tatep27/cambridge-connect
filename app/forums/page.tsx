@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Forum, ForumPost, ForumCategory } from "@/lib/types";
 import { getForums, getForumPosts, createForum } from "@/lib/api/forums";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -9,7 +10,8 @@ import { ForumDetail } from "@/components/forums/ForumDetail";
 import { CreateForumDialog } from "@/components/forums/CreateForumDialog";
 import { JoinForumDialog } from "@/components/forums/JoinForumDialog";
 
-export default function ForumsPage() {
+function ForumsPageContent() {
+  const searchParams = useSearchParams();
   const [forums, setForums] = useState<Forum[]>([]);
   const [selectedForumId, setSelectedForumId] = useState<string | null>(null);
   const [posts, setPosts] = useState<ForumPost[]>([]);
@@ -36,8 +38,12 @@ export default function ForumsPage() {
     setForums(results);
     setLoadingForums(false);
     
-    // Auto-select first forum
-    if (results.length > 0 && !selectedForumId) {
+    // Check for forum query parameter first (from dashboard links)
+    const forumParam = searchParams.get('forum');
+    if (forumParam && results.some(f => f.id === forumParam)) {
+      setSelectedForumId(forumParam);
+    } else if (results.length > 0 && !selectedForumId) {
+      // Auto-select first forum if no query param
       setSelectedForumId(results[0].id);
     }
   }
@@ -110,5 +116,17 @@ export default function ForumsPage() {
         onSelectForum={setSelectedForumId}
       />
     </DashboardLayout>
+  );
+}
+
+export default function ForumsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout activeRoute="/forums">
+        <div className="p-4 text-center text-muted-foreground">Loading forums...</div>
+      </DashboardLayout>
+    }>
+      <ForumsPageContent />
+    </Suspense>
   );
 }

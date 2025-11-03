@@ -120,5 +120,25 @@ describe('getRecentActivity', () => {
     const posts = await getRecentActivity(3);
     expect(posts.length).toBeLessThanOrEqual(3);
   });
+
+  it('should include forum information (forumTitle and forumCategory)', async () => {
+    const posts = await getRecentActivity(5);
+    posts.forEach(post => {
+      expect(post).toHaveProperty('forumTitle');
+      expect(post).toHaveProperty('forumCategory');
+      expect(typeof post.forumTitle).toBe('string');
+      expect(typeof post.forumCategory).toBe('string');
+      expect(post.forumTitle.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('should have valid forum titles', async () => {
+    const posts = await getRecentActivity(10);
+    posts.forEach(post => {
+      // Forum title should not be 'Unknown Forum' (unless forum doesn't exist)
+      // For our mock data, all forums should exist
+      expect(post.forumTitle).not.toBe('Unknown Forum');
+    });
+  });
 });
 
