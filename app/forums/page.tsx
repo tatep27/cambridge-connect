@@ -1,33 +1,114 @@
-import Link from "next/link";
+"use client";
 
-export default function Forums() {
+import { useEffect, useState } from "react";
+import { Forum, ForumPost, ForumCategory } from "@/lib/types";
+import { getForums, getForumPosts, createForum } from "@/lib/api/forums";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ForumList } from "@/components/forums/ForumList";
+import { ForumDetail } from "@/components/forums/ForumDetail";
+import { CreateForumDialog } from "@/components/forums/CreateForumDialog";
+import { JoinForumDialog } from "@/components/forums/JoinForumDialog";
+
+export default function ForumsPage() {
+  const [forums, setForums] = useState<Forum[]>([]);
+  const [selectedForumId, setSelectedForumId] = useState<string | null>(null);
+  const [posts, setPosts] = useState<ForumPost[]>([]);
+  const [loadingForums, setLoadingForums] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+
+  useEffect(() => {
+    loadForums();
+  }, []);
+
+  useEffect(() => {
+    if (selectedForumId) {
+      loadPosts(selectedForumId);
+    } else {
+      setPosts([]);
+    }
+  }, [selectedForumId]);
+
+  async function loadForums() {
+    setLoadingForums(true);
+    const results = await getForums();
+    setForums(results);
+    setLoadingForums(false);
+    
+    // Auto-select first forum
+    if (results.length > 0 && !selectedForumId) {
+      setSelectedForumId(results[0].id);
+    }
+  }
+
+  async function loadPosts(forumId: string) {
+    setLoadingPosts(true);
+    const results = await getForumPosts(forumId);
+    setPosts(results);
+    setLoadingPosts(false);
+  }
+
+  async function handleCreateForum(data: { title: string; category: ForumCategory; description: string }) {
+    try {
+      const newForum = await createForum(data);
+      // Refresh forums list
+      await loadForums();
+      // Auto-select the new forum
+      setSelectedForumId(newForum.id);
+      setCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create forum:", error);
+      alert("Failed to create forum. Please try again.");
+    }
+  }
+
+  function handleCreatePost() {
+    // TODO: Implement in Phase 2
+    alert("Create post functionality coming soon!");
+  }
+
+  const selectedForum = forums.find(f => f.id === selectedForumId) || null;
+
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-64 bg-gray-100 p-6">
-        <h1 className="text-2xl font-bold mb-8">Cambridge Org Hub</h1>
-        <nav className="space-y-2">
-          <Link href="/dashboard" className="block py-2 px-4 rounded hover:bg-gray-200">
-            Dashboard
-          </Link>
-          <Link href="/organizations" className="block py-2 px-4 rounded hover:bg-gray-200">
-            Organizations
-          </Link>
-          <Link href="/forums" className="block py-2 px-4 rounded bg-gray-200 font-medium">
-            Forums
-          </Link>
-          <Link href="/ai-resource-finder" className="block py-2 px-4 rounded hover:bg-gray-200">
-            AI Resource Finder
-          </Link>
-          <Link href="/settings" className="block py-2 px-4 rounded hover:bg-gray-200">
-            Settings
-          </Link>
-        </nav>
-      </aside>
-      <main className="flex-1 p-8">
-        <h2 className="text-3xl font-bold mb-4">Forums</h2>
-        <p className="text-gray-600">Discussion forums for Cambridge orgs.</p>
-      </main>
-    </div>
+    <DashboardLayout activeRoute="/forums">
+      <div className="flex h-[calc(100vh-8rem)] border rounded-lg overflow-hidden">
+        {/* Left Panel - 15% */}
+        <div className="w-[15%] bg-background">
+          {loadingForums ? (
+            <div className="p-4 text-center text-muted-foreground">Loading forums...</div>
+          ) : (
+            <ForumList
+              forums={forums}
+              selectedForumId={selectedForumId}
+              onSelectForum={setSelectedForumId}
+              onCreateForumClick={() => setCreateDialogOpen(true)}
+              onJoinForumClick={() => setJoinDialogOpen(true)}
+            />
+          )}
+        </div>
+
+        {/* Right Panel - 85% */}
+        <div className="flex-1 bg-background">
+          <ForumDetail
+            forum={selectedForum}
+            posts={posts}
+            loading={loadingPosts}
+            onCreatePost={handleCreatePost}
+          />
+        </div>
+      </div>
+      <CreateForumDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSubmit={handleCreateForum}
+      />
+      <JoinForumDialog
+        open={joinDialogOpen}
+        onOpenChange={setJoinDialogOpen}
+        forums={forums}
+        onSelectForum={setSelectedForumId}
+      />
+    </DashboardLayout>
   );
 }
-

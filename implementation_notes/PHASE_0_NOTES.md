@@ -2,7 +2,7 @@
 
 ## What Was Built
 
-Created the foundation of Cambridge Org Hub with:
+Created the foundation of Cambridge Connect with:
 
 1. **Next.js Project Setup**
    - Next.js 15 with App Router

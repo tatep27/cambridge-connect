@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cambridge Org Hub",
+  title: "Cambridge Connect",
   description: "Collaboration platform for Cambridge-based organizations",
 };
 

@@ -4,7 +4,7 @@ export default function AIResourceFinder() {
   return (
     <div className="flex min-h-screen">
       <aside className="w-64 bg-gray-100 p-6">
-        <h1 className="text-2xl font-bold mb-8">Cambridge Org Hub</h1>
+        <h1 className="text-2xl font-bold mb-8">Cambridge Connect</h1>
         <nav className="space-y-2">
           <Link href="/dashboard" className="block py-2 px-4 rounded hover:bg-gray-200">
             Dashboard

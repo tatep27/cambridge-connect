@@ -1,33 +1,102 @@
-import Link from "next/link";
+"use client";
 
-export default function Organizations() {
+import { useEffect, useState } from "react";
+import { Organization, OrgType } from "@/lib/types";
+import { getOrganizations, getOrgTypes } from "@/lib/api/organizations";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { OrganizationCard } from "@/components/organizations/OrganizationCard";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+
+export default function OrganizationsPage() {
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState<OrgType[]>([]);
+
+  const orgTypes = getOrgTypes();
+
+  useEffect(() => {
+    loadOrganizations();
+  }, [search, selectedTypes]);
+
+  async function loadOrganizations() {
+    setLoading(true);
+    const results = await getOrganizations({
+      search: search || undefined,
+      type: selectedTypes.length > 0 ? selectedTypes : undefined,
+    });
+    setOrganizations(results);
+    setLoading(false);
+  }
+
+  function toggleOrgType(type: OrgType) {
+    setSelectedTypes(prev => 
+      prev.includes(type) 
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  }
+
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-64 bg-gray-100 p-6">
-        <h1 className="text-2xl font-bold mb-8">Cambridge Org Hub</h1>
-        <nav className="space-y-2">
-          <Link href="/dashboard" className="block py-2 px-4 rounded hover:bg-gray-200">
-            Dashboard
-          </Link>
-          <Link href="/organizations" className="block py-2 px-4 rounded bg-gray-200 font-medium">
-            Organizations
-          </Link>
-          <Link href="/forums" className="block py-2 px-4 rounded hover:bg-gray-200">
-            Forums
-          </Link>
-          <Link href="/ai-resource-finder" className="block py-2 px-4 rounded hover:bg-gray-200">
-            AI Resource Finder
-          </Link>
-          <Link href="/settings" className="block py-2 px-4 rounded hover:bg-gray-200">
-            Settings
-          </Link>
-        </nav>
-      </aside>
-      <main className="flex-1 p-8">
-        <h2 className="text-3xl font-bold mb-4">Organizations</h2>
-        <p className="text-gray-600">Browse Cambridge organizations.</p>
-      </main>
-    </div>
+    <DashboardLayout activeRoute="/organizations">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Organizations</h1>
+          <p className="text-muted-foreground">Browse Cambridge-based organizations</p>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          <Input
+            placeholder="Search organizations..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-md"
+          />
+
+          <div>
+            <h3 className="font-semibold mb-2">Organization Type</h3>
+            <div className="space-y-2">
+              {orgTypes.map((type) => (
+                <div key={type} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`type-${type}`}
+                    checked={selectedTypes.includes(type)}
+                    onCheckedChange={() => toggleOrgType(type)}
+                  />
+                  <label
+                    htmlFor={`type-${type}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Results */}
+        {loading ? (
+          <div className="text-center py-12">Loading organizations...</div>
+        ) : organizations.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            No organizations found matching your filters
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Showing {organizations.length} organization{organizations.length !== 1 ? 's' : ''}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {organizations.map((org) => (
+                <OrganizationCard key={org.id} organization={org} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }
-
