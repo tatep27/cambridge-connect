@@ -1,6 +1,6 @@
 "use client";
 
-import { ForumPostWithForum } from "@/lib/api/forums";
+import { ForumPostWithForum } from "@/lib/types";
 import { PostCard } from "./PostCard";
 
 interface ActivityFeedProps {

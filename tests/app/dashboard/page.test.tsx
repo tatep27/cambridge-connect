@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import Dashboard from '@/app/dashboard/page';
-import * as forumsApi from '@/lib/api/forums';
+import * as forumsApiClient from '@/lib/api-client/forums';
 
-// Mock the API
-vi.mock('@/lib/api/forums');
+// Mock the API client
+vi.mock('@/lib/api-client/forums');
 vi.mock('@/components/layout/DashboardLayout', () => ({
   DashboardLayout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dashboard-layout">{children}</div>
@@ -51,28 +51,28 @@ describe('Dashboard Page', () => {
   });
 
   it('should render dashboard title', () => {
-    vi.mocked(forumsApi.getRecentActivity).mockResolvedValue(mockPosts);
+    vi.mocked(forumsApiClient.getRecentActivity).mockResolvedValue(mockPosts);
     render(<Dashboard />);
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
 
   it('should render dashboard description', () => {
-    vi.mocked(forumsApi.getRecentActivity).mockResolvedValue(mockPosts);
+    vi.mocked(forumsApiClient.getRecentActivity).mockResolvedValue(mockPosts);
     render(<Dashboard />);
     expect(screen.getByText(/Recent activity from across all forums/)).toBeInTheDocument();
   });
 
   it('should call getRecentActivity on mount', async () => {
-    vi.mocked(forumsApi.getRecentActivity).mockResolvedValue(mockPosts);
+    vi.mocked(forumsApiClient.getRecentActivity).mockResolvedValue(mockPosts);
     render(<Dashboard />);
     
     await waitFor(() => {
-      expect(forumsApi.getRecentActivity).toHaveBeenCalledWith(10);
+      expect(forumsApiClient.getRecentActivity).toHaveBeenCalledWith(10);
     });
   });
 
   it('should render posts after loading', async () => {
-    vi.mocked(forumsApi.getRecentActivity).mockResolvedValue(mockPosts);
+    vi.mocked(forumsApiClient.getRecentActivity).mockResolvedValue(mockPosts);
     render(<Dashboard />);
     
     await waitFor(() => {
@@ -87,7 +87,7 @@ describe('Dashboard Page', () => {
     const promise = new Promise<typeof mockPosts>((resolve) => {
       resolvePromise = resolve;
     });
-    vi.mocked(forumsApi.getRecentActivity).mockReturnValue(promise);
+    vi.mocked(forumsApiClient.getRecentActivity).mockReturnValue(promise);
     
     render(<Dashboard />);
     
@@ -102,7 +102,7 @@ describe('Dashboard Page', () => {
   });
 
   it('should show empty state when no posts', async () => {
-    vi.mocked(forumsApi.getRecentActivity).mockResolvedValue([]);
+    vi.mocked(forumsApiClient.getRecentActivity).mockResolvedValue([]);
     render(<Dashboard />);
     
     await waitFor(() => {
@@ -111,7 +111,7 @@ describe('Dashboard Page', () => {
   });
 
   it('should handle API errors gracefully', async () => {
-    vi.mocked(forumsApi.getRecentActivity).mockRejectedValue(new Error('API Error'));
+    vi.mocked(forumsApiClient.getRecentActivity).mockRejectedValue(new Error('API Error'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
     render(<Dashboard />);

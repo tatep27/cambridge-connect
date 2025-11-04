@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ForumPost, ForumReply } from "@/lib/types";
-import { getPostReplies } from "@/lib/api/forums";
+import { getPostReplies } from "@/lib/api-client/forums";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 

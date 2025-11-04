@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ForumPostWithForum, getRecentActivity } from "@/lib/api/forums";
+import { ForumPostWithForum } from "@/lib/types";
+import { getRecentActivity } from "@/lib/api-client/forums";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ActivityFeed } from "@/components/forums/ActivityFeed";
 
 export default function Dashboard() {
   const [posts, setPosts] = useState<ForumPostWithForum[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadRecentActivity();
@@ -15,11 +17,13 @@ export default function Dashboard() {
 
   async function loadRecentActivity() {
     setLoading(true);
+    setError(null);
     try {
       const recentPosts = await getRecentActivity(10);
       setPosts(recentPosts);
     } catch (error) {
       console.error("Failed to load recent activity:", error);
+      setError(error instanceof Error ? error.message : "Failed to load recent activity");
     } finally {
       setLoading(false);
     }
@@ -34,7 +38,19 @@ export default function Dashboard() {
             Recent activity from across all forums
           </p>
         </div>
-        <ActivityFeed posts={posts} loading={loading} />
+        {error ? (
+          <div className="text-center py-12">
+            <p className="text-destructive mb-2">Error: {error}</p>
+            <button
+              onClick={loadRecentActivity}
+              className="text-primary hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : (
+          <ActivityFeed posts={posts} loading={loading} />
+        )}
       </div>
     </DashboardLayout>
   );

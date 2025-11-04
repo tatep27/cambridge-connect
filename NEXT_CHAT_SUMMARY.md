@@ -68,10 +68,11 @@
 
 ## Test Suite
 Located in `tests/` folder:
-- 114 tests passing across 14 test files
-- Coverage: utilities, API layer, components, mock data validation, pages
+- 156 tests passing across 21 test files
+- Coverage: utilities, API layer, API routes, components, mock data validation, pages
 - Framework: Vitest + React Testing Library
 - Run: `npm test`, `npm run test:watch`, `npm run test:coverage`
+- API Route Tests: 44 tests covering all endpoints, error scenarios, and edge cases
 
 ---
 
@@ -104,23 +105,53 @@ cambridge-connect/
 │   │   ├── CreateForumDialog.tsx    # ✅
 │   │   └── JoinForumDialog.tsx      # ✅
 │   └── ui/                          # shadcn/ui components
+├── app/
+│   └── api/                         # ✅ NEW: API route handlers
+│       ├── organizations/
+│       │   ├── route.ts             # GET /api/organizations
+│       │   └── [id]/route.ts       # GET /api/organizations/[id]
+│       ├── forums/
+│       │   ├── route.ts             # GET, POST /api/forums
+│       │   ├── [id]/route.ts       # GET /api/forums/[id]
+│       │   └── [id]/posts/route.ts # GET /api/forums/[id]/posts
+│       ├── posts/
+│       │   ├── [id]/route.ts       # GET /api/posts/[id]
+│       │   └── [id]/replies/route.ts # GET /api/posts/[id]/replies
+│       └── activity/
+│           └── recent/route.ts      # GET /api/activity/recent
 ├── lib/
 │   ├── api/
-│   │   ├── organizations.ts         # ✅ With filtering/search, getOrganization()
-│   │   └── forums.ts                # ✅ With createForum(), getRecentActivity()
+│   │   ├── organizations.ts         # ✅ Business logic (used by route handlers)
+│   │   └── forums.ts                # ✅ Business logic (used by route handlers)
+│   ├── api-client/                  # ✅ NEW: Frontend API client
+│   │   ├── index.ts                 # Main exports
+│   │   ├── types.ts                 # API response types
+│   │   ├── utils.ts                 # apiGet, apiPost helpers
+│   │   ├── route-handlers.ts        # Server-side utilities
+│   │   ├── organizations.ts         # Organizations API client
+│   │   └── forums.ts                # Forums API client
 │   ├── data/
 │   │   ├── mockOrganizations.ts     # ✅ 8 orgs (updated structure)
 │   │   └── mockForums.ts            # ✅ 6 forums, 13 posts
-│   ├── types.ts                     # ✅ All TypeScript interfaces (updated Organization)
+│   ├── types.ts                     # ✅ All TypeScript interfaces (includes ForumPostWithForum)
 │   └── utils.ts                     # ✅ cn(), formatArrayDisplay()
-├── tests/                           # ✅ 114 tests passing
+├── tests/                           # ✅ 156 tests passing
 │   ├── app/
+│   │   ├── api/                     # ✅ NEW: 44 API route tests
+│   │   │   ├── organizations.test.ts
+│   │   │   ├── forums.test.ts
+│   │   │   ├── forums-[id].test.ts
+│   │   │   ├── forums-[id]-posts.test.ts
+│   │   │   ├── posts-[id].test.ts
+│   │   │   ├── posts-[id]-replies.test.ts
+│   │   │   └── activity-recent.test.ts
 │   │   ├── dashboard/
 │   │   └── organizations/[id]/
 │   ├── components/
 │   │   ├── forums/                  # PostCard, ActivityFeed tests
 │   │   └── organizations/            # OrganizationCard, OrganizationProfile tests
 │   └── lib/
+│       └── api-client/              # ✅ NEW: API client tests
 └── implementation_notes/            # Phase documentation
 ```
 
@@ -182,10 +213,49 @@ cambridge-connect/
 
 ---
 
+## API Structure
+
+### Endpoints
+
+**Organizations:**
+- `GET /api/organizations` - List all (with query params: `type`, `search`)
+- `GET /api/organizations/[id]` - Get single organization
+
+**Forums:**
+- `GET /api/forums` - List all forums
+- `POST /api/forums` - Create new forum
+- `GET /api/forums/[id]` - Get single forum
+- `GET /api/forums/[id]/posts` - Get posts for forum
+
+**Posts:**
+- `GET /api/posts/[id]` - Get single post
+- `GET /api/posts/[id]/replies` - Get replies for post
+
+**Activity:**
+- `GET /api/activity/recent?limit=10` - Get recent activity across all forums
+
+### Response Format
+
+All responses follow standard format:
+```typescript
+// Success
+{ data: T | T[] }
+
+// Error
+{ error: { message: string, code?: ApiErrorCode } }
+```
+
+### HTTP Status Codes
+- `200` - Success (GET)
+- `201` - Created (POST)
+- `400` - Bad Request (validation errors)
+- `404` - Not Found (resource doesn't exist)
+- `500` - Internal Server Error
+
 ## What's Next
 
-1. **Phase 1 Wrap-up:** Final polish, documentation
-2. **Phase 2:** API routes (mock-backed, ready for DB later)
+1. **Phase 2 Complete:** All API routes implemented, tested, and documented
+2. **Phase 3:** Database integration (Prisma + PostgreSQL/SQLite)
 3. **AI Resource Finder:** Implement actual search/chat functionality in top bar
 4. **Settings Page:** Build out settings functionality
 5. **Profile Page:** User/organization profile management

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Organization, OrgType } from "@/lib/types";
-import { getOrganizations, getOrgTypes } from "@/lib/api/organizations";
+import { getOrganizations, getOrgTypes } from "@/lib/api-client/organizations";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OrganizationCard } from "@/components/organizations/OrganizationCard";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 export default function OrganizationsPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<OrgType[]>([]);
 
@@ -22,12 +23,19 @@ export default function OrganizationsPage() {
 
   async function loadOrganizations() {
     setLoading(true);
-    const results = await getOrganizations({
-      search: search || undefined,
-      type: selectedTypes.length > 0 ? selectedTypes : undefined,
-    });
-    setOrganizations(results);
-    setLoading(false);
+    setError(null);
+    try {
+      const results = await getOrganizations({
+        search: search || undefined,
+        type: selectedTypes.length > 0 ? selectedTypes : undefined,
+      });
+      setOrganizations(results);
+    } catch (error) {
+      console.error("Failed to load organizations:", error);
+      setError(error instanceof Error ? error.message : "Failed to load organizations");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function toggleOrgType(type: OrgType) {
@@ -80,6 +88,16 @@ export default function OrganizationsPage() {
         {/* Results */}
         {loading ? (
           <div className="text-center py-12">Loading organizations...</div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-destructive mb-2">Error: {error}</p>
+            <button 
+              onClick={loadOrganizations}
+              className="text-primary hover:underline"
+            >
+              Try again
+            </button>
+          </div>
         ) : organizations.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             No organizations found matching your filters

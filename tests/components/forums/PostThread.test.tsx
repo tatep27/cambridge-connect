@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PostThread } from '@/components/forums/PostThread';
 import { ForumPost } from '@/lib/types';
-import * as forumsApi from '@/lib/api/forums';
+import * as forumsApiClient from '@/lib/api-client/forums';
 
-// Mock the API
-vi.mock('@/lib/api/forums');
+// Mock the API client
+vi.mock('@/lib/api-client/forums');
 
 const mockPost: ForumPost = {
   id: 'post-1',
@@ -86,21 +86,21 @@ describe('PostThread', () => {
 
   it('should load and display replies when show replies is clicked', async () => {
     const user = userEvent.setup();
-    vi.mocked(forumsApi.getPostReplies).mockResolvedValue(mockReplies);
+    vi.mocked(forumsApiClient.getPostReplies).mockResolvedValue(mockReplies);
     
     render(<PostThread post={mockPost} />);
     
     const showRepliesButton = screen.getByText(/Show.*replies/);
     await user.click(showRepliesButton);
     
-    expect(forumsApi.getPostReplies).toHaveBeenCalledWith('post-1');
+    expect(forumsApiClient.getPostReplies).toHaveBeenCalledWith('post-1');
     expect(await screen.findByText('Reply Org')).toBeInTheDocument();
     expect(screen.getByText('This is a reply')).toBeInTheDocument();
   });
 
   it('should hide replies when hide button is clicked', async () => {
     const user = userEvent.setup();
-    vi.mocked(forumsApi.getPostReplies).mockResolvedValue(mockReplies);
+    vi.mocked(forumsApiClient.getPostReplies).mockResolvedValue(mockReplies);
     
     render(<PostThread post={mockPost} />);
     
@@ -121,7 +121,7 @@ describe('PostThread', () => {
     const promise = new Promise<typeof mockReplies>((resolve) => {
       resolvePromise = resolve;
     });
-    vi.mocked(forumsApi.getPostReplies).mockReturnValue(promise);
+    vi.mocked(forumsApiClient.getPostReplies).mockReturnValue(promise);
     
     render(<PostThread post={mockPost} />);
     
@@ -141,7 +141,7 @@ describe('PostThread', () => {
     await screen.findByText('Reply Org');
     
     // Verify that the API was called (which confirms loading state was triggered)
-    expect(forumsApi.getPostReplies).toHaveBeenCalledWith('post-1');
+    expect(forumsApiClient.getPostReplies).toHaveBeenCalledWith('post-1');
   });
 });
 

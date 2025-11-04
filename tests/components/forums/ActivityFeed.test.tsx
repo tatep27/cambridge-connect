@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ActivityFeed } from '@/components/forums/ActivityFeed';
-import { ForumPostWithForum } from '@/lib/api/forums';
+import { ForumPostWithForum } from '@/lib/types';
 
 // Mock Next.js Link
 vi.mock('next/link', () => ({

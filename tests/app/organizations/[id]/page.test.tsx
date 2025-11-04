@@ -2,15 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { useParams } from 'next/navigation';
 import OrganizationPage from '@/app/organizations/[id]/page';
-import * as organizationsApi from '@/lib/api/organizations';
+import * as organizationsApi from '@/lib/api-client/organizations';
 
 // Mock Next.js hooks
 vi.mock('next/navigation', () => ({
   useParams: vi.fn(),
 }));
 
-// Mock the API
-vi.mock('@/lib/api/organizations');
+// Mock the API client
+vi.mock('@/lib/api-client/organizations');
 vi.mock('@/components/layout/DashboardLayout', () => ({
   DashboardLayout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dashboard-layout">{children}</div>
@@ -78,7 +78,9 @@ describe('Organization Page', () => {
 
   it('should render error when organization is not found', async () => {
     vi.mocked(useParams).mockReturnValue({ id: 'invalid-id' });
-    vi.mocked(organizationsApi.getOrganization).mockResolvedValue(null);
+    vi.mocked(organizationsApi.getOrganization).mockRejectedValue(
+      new Error('Organization with ID invalid-id not found')
+    );
 
     render(<OrganizationPage />);
 

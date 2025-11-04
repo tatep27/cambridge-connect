@@ -91,3 +91,12 @@ export interface ForumReply {
   createdAt: string;
 }
 
+/**
+ * Extended post type with forum information for dashboard display
+ * This type combines ForumPost with forum metadata
+ */
+export interface ForumPostWithForum extends ForumPost {
+  forumTitle: string;
+  forumCategory: string;
+}
+

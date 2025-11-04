@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PostCard } from '@/components/forums/PostCard';
-import { ForumPostWithForum } from '@/lib/api/forums';
+import { ForumPostWithForum } from '@/lib/types';
 
 // Mock Next.js Link
 vi.mock('next/link', () => ({

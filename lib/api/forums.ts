@@ -1,4 +1,4 @@
-import { Forum, ForumPost, ForumReply, ForumCategory } from "../types";
+import { Forum, ForumPost, ForumReply, ForumCategory, ForumPostWithForum } from "../types";
 import { mockForums, mockPosts, mockReplies } from "../data/mockForums";
 
 // In-memory storage for newly created forums (in Phase 2, this will be replaced with DB)
@@ -48,14 +48,6 @@ export async function getPostReplies(postId: string): Promise<ForumReply[]> {
   return mockReplies
     .filter(reply => reply.postId === postId)
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-}
-
-/**
- * Extended post type with forum information for dashboard display
- */
-export interface ForumPostWithForum extends ForumPost {
-  forumTitle: string;
-  forumCategory: string;
 }
 
 /**

@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Organization } from "@/lib/types";
-import { getOrganization } from "@/lib/api/organizations";
+import { getOrganization } from "@/lib/api-client/organizations";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OrganizationProfile } from "@/components/organizations/OrganizationProfile";
 
@@ -29,14 +29,15 @@ function OrganizationPageContent() {
     setError(null);
     try {
       const org = await getOrganization(params.id);
-      if (org) {
-        setOrganization(org);
-      } else {
-        setError("Organization not found");
-      }
+      setOrganization(org);
     } catch (err) {
       console.error("Failed to load organization:", err);
-      setError("Failed to load organization");
+      // API client throws error for 404s, so check if it's a "not found" error
+      if (err instanceof Error && err.message.includes('not found')) {
+        setError("Organization not found");
+      } else {
+        setError("Failed to load organization");
+      }
     } finally {
       setLoading(false);
     }
