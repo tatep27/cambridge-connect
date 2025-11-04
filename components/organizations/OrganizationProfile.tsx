@@ -23,7 +23,7 @@ export function OrganizationProfile({ organization }: OrganizationProfileProps) 
       {/* Single Card with All Information */}
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-6">
             <div className="flex-1">
               <CardTitle className="text-3xl mb-2">{organization.name}</CardTitle>
               <div className="flex flex-wrap gap-2 mb-4">
@@ -34,11 +34,47 @@ export function OrganizationProfile({ organization }: OrganizationProfileProps) 
                 ))}
               </div>
               {organization.location && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   <span>{organization.location}</span>
                 </div>
               )}
+            </div>
+            
+            {/* Contact Information - Top Right */}
+            <div className="flex-shrink-0">
+              <div className="space-y-2">
+                {organization.website && (
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <a
+                      href={organization.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {organization.website}
+                    </a>
+                  </div>
+                )}
+                {organization.email && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <a
+                      href={`mailto:${organization.email}`}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {organization.email}
+                    </a>
+                  </div>
+                )}
+                {organization.contactInternal && (
+                  <div className="pt-2 mt-2 border-t">
+                    <p className="text-xs text-muted-foreground mb-1">Internal Contact:</p>
+                    <p className="text-sm">{organization.contactInternal}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -53,53 +89,16 @@ export function OrganizationProfile({ organization }: OrganizationProfileProps) 
 
           {/* Resources Offered Section */}
           <div className="pt-4 border-t">
-            <h3 className="text-lg font-semibold mb-2">Reach Out to Us For</h3>
+            <h3 className="text-lg font-semibold mb-2">Reach out to us if you need help with...</h3>
             <p className="text-sm whitespace-pre-wrap text-muted-foreground">
               {organization.resourcesOffered}
             </p>
           </div>
 
-          {/* Contact Information Section */}
-          <div className="pt-4 border-t">
-            <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
-            <div className="space-y-2">
-              {organization.website && (
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <a
-                    href={organization.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline"
-                  >
-                    {organization.website}
-                  </a>
-                </div>
-              )}
-              {organization.email && (
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <a
-                    href={`mailto:${organization.email}`}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    {organization.email}
-                  </a>
-                </div>
-              )}
-              {organization.contactInternal && (
-                <div className="pt-2 mt-2 border-t">
-                  <p className="text-xs text-muted-foreground mb-1">Internal Contact:</p>
-                  <p className="text-sm">{organization.contactInternal}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Current Needs Section */}
           {organization.currentNeedsInternal && (
             <div className="pt-4 border-t">
-              <h3 className="text-lg font-semibold mb-2">Current Needs</h3>
+              <h3 className="text-lg font-semibold mb-2">We could use some help with...</h3>
               <p className="text-sm whitespace-pre-wrap text-muted-foreground">
                 {organization.currentNeedsInternal}
               </p>

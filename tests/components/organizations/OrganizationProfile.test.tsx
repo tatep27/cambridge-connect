@@ -48,7 +48,7 @@ describe('OrganizationProfile', () => {
   it('should render resources offered', () => {
     render(<OrganizationProfile organization={mockOrganization} />);
     expect(screen.getByText('We offer community resources, space, and expertise.')).toBeInTheDocument();
-    expect(screen.getByText('Reach Out to Us For')).toBeInTheDocument();
+    expect(screen.getByText('Reach out to us if you need help with...')).toBeInTheDocument();
   });
 
   it('should render contact information', () => {
@@ -65,7 +65,7 @@ describe('OrganizationProfile', () => {
   it('should render current needs as text', () => {
     render(<OrganizationProfile organization={mockOrganization} />);
     expect(screen.getByText('We are looking for volunteers and space for our programs.')).toBeInTheDocument();
-    expect(screen.getByText('Current Needs')).toBeInTheDocument();
+    expect(screen.getByText('We could use some help with...')).toBeInTheDocument();
   });
 
   it('should have back link to organizations page', () => {
@@ -89,7 +89,7 @@ describe('OrganizationProfile', () => {
   it('should not render needs section when needs are empty', () => {
     const orgWithoutNeeds = { ...mockOrganization, currentNeedsInternal: '' };
     render(<OrganizationProfile organization={orgWithoutNeeds} />);
-    expect(screen.queryByText('Current Needs')).not.toBeInTheDocument();
+    expect(screen.queryByText('We could use some help with...')).not.toBeInTheDocument();
   });
 });
 
