@@ -19,6 +19,7 @@ export default function OrganizationsPage() {
 
   useEffect(() => {
     loadOrganizations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, selectedTypes]);
 
   async function loadOrganizations() {

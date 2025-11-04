@@ -1,15 +1,67 @@
 import { Forum, ForumPost, ForumReply, ForumCategory, ForumPostWithForum } from "../types";
-import { mockForums, mockPosts, mockReplies } from "../data/mockForums";
+import { prisma } from "../prisma";
+import { prismaForumToTypeScript, prismaPostToTypeScript, prismaReplyToTypeScript } from "../db-transformers";
 
-// In-memory storage for newly created forums (in Phase 2, this will be replaced with DB)
-let createdForums: Forum[] = [];
+/**
+ * Update forum post count based on actual posts in database
+ */
+async function updateForumPostCount(forumId: string): Promise<void> {
+  const postCount = await prisma.forumPost.count({
+    where: { forumId },
+  });
+
+  await prisma.forum.update({
+    where: { id: forumId },
+    data: { postCount },
+  });
+}
+
+/**
+ * Update forum last activity timestamp
+ */
+async function updateForumLastActivity(forumId: string): Promise<void> {
+  const latestPost = await prisma.forumPost.findFirst({
+    where: { forumId },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (latestPost) {
+    await prisma.forum.update({
+      where: { id: forumId },
+      data: { lastActivity: latestPost.createdAt },
+    });
+  }
+}
+
+/**
+ * Update post reply count based on actual replies in database
+ */
+async function updatePostReplyCount(postId: string): Promise<void> {
+  const replyCount = await prisma.forumReply.count({
+    where: { postId },
+  });
+
+  await prisma.forumPost.update({
+    where: { id: postId },
+    data: { replyCount },
+  });
+}
 
 /**
  * Get all forums
  */
 export async function getForums(): Promise<Forum[]> {
   await new Promise(resolve => setTimeout(resolve, 100));
-  return [...mockForums, ...createdForums];
+  
+  try {
+    const forums = await prisma.forum.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return forums.map(prismaForumToTypeScript);
+  } catch (error: any) {
+    throw new Error(`Failed to fetch forums: ${error.message}`);
+  }
 }
 
 /**
@@ -17,9 +69,20 @@ export async function getForums(): Promise<Forum[]> {
  */
 export async function getForum(id: string): Promise<Forum | null> {
   await new Promise(resolve => setTimeout(resolve, 50));
-  return mockForums.find(forum => forum.id === id) || 
-         createdForums.find(forum => forum.id === id) || 
-         null;
+  
+  try {
+    const forum = await prisma.forum.findUnique({
+      where: { id },
+    });
+
+    if (!forum) {
+      return null;
+    }
+
+    return prismaForumToTypeScript(forum);
+  } catch (error: any) {
+    throw new Error(`Failed to fetch forum: ${error.message}`);
+  }
 }
 
 /**
@@ -27,9 +90,17 @@ export async function getForum(id: string): Promise<Forum | null> {
  */
 export async function getForumPosts(forumId: string): Promise<ForumPost[]> {
   await new Promise(resolve => setTimeout(resolve, 100));
-  return mockPosts
-    .filter(post => post.forumId === forumId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  
+  try {
+    const posts = await prisma.forumPost.findMany({
+      where: { forumId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return posts.map(prismaPostToTypeScript);
+  } catch (error: any) {
+    throw new Error(`Failed to fetch posts: ${error.message}`);
+  }
 }
 
 /**
@@ -37,7 +108,20 @@ export async function getForumPosts(forumId: string): Promise<ForumPost[]> {
  */
 export async function getPost(postId: string): Promise<ForumPost | null> {
   await new Promise(resolve => setTimeout(resolve, 50));
-  return mockPosts.find(post => post.id === postId) || null;
+  
+  try {
+    const post = await prisma.forumPost.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      return null;
+    }
+
+    return prismaPostToTypeScript(post);
+  } catch (error: any) {
+    throw new Error(`Failed to fetch post: ${error.message}`);
+  }
 }
 
 /**
@@ -45,9 +129,17 @@ export async function getPost(postId: string): Promise<ForumPost | null> {
  */
 export async function getPostReplies(postId: string): Promise<ForumReply[]> {
   await new Promise(resolve => setTimeout(resolve, 100));
-  return mockReplies
-    .filter(reply => reply.postId === postId)
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  
+  try {
+    const replies = await prisma.forumReply.findMany({
+      where: { postId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return replies.map(prismaReplyToTypeScript);
+  } catch (error: any) {
+    throw new Error(`Failed to fetch replies: ${error.message}`);
+  }
 }
 
 /**
@@ -56,19 +148,24 @@ export async function getPostReplies(postId: string): Promise<ForumReply[]> {
  */
 export async function getRecentActivity(limit: number = 10): Promise<ForumPostWithForum[]> {
   await new Promise(resolve => setTimeout(resolve, 100));
-  const allForums = [...mockForums, ...createdForums];
   
-  return [...mockPosts]
-    .map(post => {
-      const forum = allForums.find(f => f.id === post.forumId);
-      return {
-        ...post,
-        forumTitle: forum?.title || 'Unknown Forum',
-        forumCategory: forum?.category || 'general',
-      };
-    })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, limit);
+  try {
+    const posts = await prisma.forumPost.findMany({
+      include: {
+        forum: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return posts.map(post => ({
+      ...prismaPostToTypeScript(post),
+      forumTitle: post.forum.title,
+      forumCategory: post.forum.category,
+    }));
+  } catch (error: any) {
+    throw new Error(`Failed to fetch recent activity: ${error.message}`);
+  }
 }
 
 /**
@@ -81,19 +178,29 @@ export async function createForum(data: {
 }): Promise<Forum> {
   await new Promise(resolve => setTimeout(resolve, 200));
   
-  const newForum: Forum = {
-    id: `forum-${Date.now()}`,
-    title: data.title,
-    category: data.category,
-    description: data.description,
-    createdAt: new Date().toISOString().split('T')[0],
-    postCount: 0,
-    lastActivity: new Date().toISOString().split('T')[0],
-    memberCount: 1, // Creator is the first member
-    messagesToday: 0,
-  };
-  
-  createdForums.push(newForum);
-  return newForum;
+  try {
+    const now = new Date();
+    
+    const newForum = await prisma.forum.create({
+      data: {
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        createdAt: now,
+        postCount: 0,
+        lastActivity: now,
+        memberCount: 1, // Creator is the first member
+        messagesToday: 0,
+      },
+    });
+
+    return prismaForumToTypeScript(newForum);
+  } catch (error: any) {
+    // Handle Prisma errors
+    if (error.code === 'P2002') {
+      throw new Error('A forum with this information already exists');
+    }
+    throw new Error(`Failed to create forum: ${error.message}`);
+  }
 }
 

@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Organization model
+// Note: PostgreSQL supports JSON arrays natively, but we're storing as JSON string for consistency
+// In the future, we could use PostgreSQL's native JSON/JSONB types
+model Organization {
+  id                   String   @id @default(cuid())
+  name                 String
+  type                 String   // JSON array of org types: ["nonprofit", "community_center"]
+  description          String
+  website              String?
+  email                String?
+  location             String?
+  contactInternal      String
+  currentNeedsInternal String
+  resourcesOffered     String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([name])
+}
+
+// Forum model
+model Forum {
+  id          String      @id @default(cuid())
+  title       String
+  category    String      // ForumCategory: "space_sharing", "volunteers", etc.
+  description String
+  createdAt   DateTime    @default(now())
+  postCount   Int         @default(0)
+  lastActivity DateTime   @default(now())
+  memberCount Int         @default(0)
+  messagesToday Int       @default(0)
+  
+  posts       ForumPost[]
+
+  @@index([category])
+  @@index([createdAt])
+}
+
+// Forum Post model
+model ForumPost {
+  id            String       @id @default(cuid())
+  forumId       String
+  forum         Forum        @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  authorOrgId   String
+  authorOrgName String
+  title         String
+  content       String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime?
+  replyCount    Int          @default(0)
+  
+  replies       ForumReply[]
+
+  @@index([forumId])
+  @@index([authorOrgId])
+  @@index([createdAt])
+}
+
+// Forum Reply model
+model ForumReply {
+  id            String    @id @default(cuid())
+  postId        String
+  post          ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorOrgId   String
+  authorOrgName String
+  content       String
+  createdAt     DateTime  @default(now())
+
+  @@index([postId])
+  @@index([authorOrgId])
+  @@index([createdAt])
+}
