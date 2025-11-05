@@ -16,6 +16,7 @@ function OrganizationPageContent() {
 
   useEffect(() => {
     loadOrganization();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   async function loadOrganization() {

@@ -48,7 +48,7 @@ export default function OnboardingPage() {
           <div className="p-6 border rounded-lg">
             <h2 className="text-xl font-semibold mb-2">Join an Existing Organization</h2>
             <p className="text-muted-foreground mb-4">
-              Search for and join an organization that you're already part of.
+              Search for and join an organization that you&apos;re already part of.
             </p>
             <p className="text-sm text-muted-foreground italic">
               Coming soon in Phase 4E
