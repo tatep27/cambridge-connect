@@ -16,7 +16,7 @@ datasource db {
 model Organization {
   id                   String   @id @default(cuid())
   name                 String
-  type                 String   // JSON array of org types: ["nonprofit", "community_center"]
+  type                 String // JSON array of org types: ["nonprofit", "community_center"]
   description          String
   website              String?
   email                String?
@@ -27,22 +27,83 @@ model Organization {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
+  users User[] // Users belonging to this organization
+
   @@index([name])
+}
+
+// User model for authentication
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String?
+  emailVerified  DateTime?
+  password       String? // Hashed password using bcrypt
+  organizationId String? // Nullable: can be null during onboarding, required after onboarding
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+// NextAuth Account model (for OAuth providers - not used for credentials auth, but required by NextAuth schema)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// NextAuth Session model
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+
+  @@index([userId])
+}
+
+// NextAuth VerificationToken model (for email verification - optional)
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 // Forum model
 model Forum {
-  id          String      @id @default(cuid())
-  title       String
-  category    String      // ForumCategory: "space_sharing", "volunteers", etc.
-  description String
-  createdAt   DateTime    @default(now())
-  postCount   Int         @default(0)
-  lastActivity DateTime   @default(now())
-  memberCount Int         @default(0)
-  messagesToday Int       @default(0)
-  
-  posts       ForumPost[]
+  id            String   @id @default(cuid())
+  title         String
+  category      String // ForumCategory: "space_sharing", "volunteers", etc.
+  description   String
+  createdAt     DateTime @default(now())
+  postCount     Int      @default(0)
+  lastActivity  DateTime @default(now())
+  memberCount   Int      @default(0)
+  messagesToday Int      @default(0)
+
+  posts ForumPost[]
 
   @@index([category])
   @@index([createdAt])
@@ -50,18 +111,18 @@ model Forum {
 
 // Forum Post model
 model ForumPost {
-  id            String       @id @default(cuid())
+  id            String    @id @default(cuid())
   forumId       String
-  forum         Forum        @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  forum         Forum     @relation(fields: [forumId], references: [id], onDelete: Cascade)
   authorOrgId   String
   authorOrgName String
   title         String
   content       String
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime  @default(now())
   updatedAt     DateTime?
-  replyCount    Int          @default(0)
-  
-  replies       ForumReply[]
+  replyCount    Int       @default(0)
+
+  replies ForumReply[]
 
   @@index([forumId])
   @@index([authorOrgId])
