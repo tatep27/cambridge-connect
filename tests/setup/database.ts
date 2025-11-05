@@ -18,12 +18,14 @@ export async function resetDatabase() {
   await prisma.forumReply.deleteMany();
   await prisma.forumPost.deleteMany();
   await prisma.forum.deleteMany();
+  await prisma.user.deleteMany(); // Delete users before organizations (if FK constraint exists)
   await prisma.organization.deleteMany();
 }
 
 /**
  * Seed the database with test data
  * This uses the same seed script but can be customized for tests
+ * Note: This will fail if data already exists - use resetAndSeedDatabase() for a clean state
  */
 export async function seedDatabase() {
   // Import seed data
@@ -32,17 +34,28 @@ export async function seedDatabase() {
   const { typeScriptOrgToPrisma } = await import('@/lib/db-transformers');
   const { parseDateFromApi } = await import('@/lib/db-helpers');
 
-  // Seed Organizations
+  // Check if data already exists
+  const orgCount = await prisma.organization.count();
+  if (orgCount > 0) {
+    // Data already exists, skip seeding
+    return;
+  }
+
+  // Seed Organizations - use upsert to avoid conflicts
   for (const org of mockOrganizations) {
-    await prisma.organization.create({
-      data: typeScriptOrgToPrisma(org),
+    await prisma.organization.upsert({
+      where: { id: org.id },
+      update: {}, // Don't update if exists
+      create: typeScriptOrgToPrisma(org),
     });
   }
 
-  // Seed Forums (manual conversion like seed script)
+  // Seed Forums (manual conversion like seed script) - use upsert
   for (const forum of mockForums) {
-    await prisma.forum.create({
-      data: {
+    await prisma.forum.upsert({
+      where: { id: forum.id },
+      update: {}, // Don't update if exists
+      create: {
         id: forum.id,
         title: forum.title,
         category: forum.category,
@@ -56,10 +69,12 @@ export async function seedDatabase() {
     });
   }
 
-  // Seed Posts
+  // Seed Posts - use upsert
   for (const post of mockPosts) {
-    await prisma.forumPost.create({
-      data: {
+    await prisma.forumPost.upsert({
+      where: { id: post.id },
+      update: {}, // Don't update if exists
+      create: {
         id: post.id,
         forumId: post.forumId,
         authorOrgId: post.authorOrgId,
@@ -73,10 +88,12 @@ export async function seedDatabase() {
     });
   }
 
-  // Seed Replies
+  // Seed Replies - use upsert
   for (const reply of mockReplies) {
-    await prisma.forumReply.create({
-      data: {
+    await prisma.forumReply.upsert({
+      where: { id: reply.id },
+      update: {}, // Don't update if exists
+      create: {
         id: reply.id,
         postId: reply.postId,
         authorOrgId: reply.authorOrgId,

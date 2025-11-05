@@ -1,7 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { getOrganizations, getOrgTypes, getOrganization } from '@/lib/api/organizations';
+import { seedDatabase } from '@/tests/setup/database';
+import { prisma } from '@/lib/prisma';
 
 describe('getOrganizations', () => {
+  beforeEach(async () => {
+    // Ensure database is seeded
+    const orgCount = await prisma.organization.count();
+    if (orgCount === 0) {
+      await seedDatabase();
+    }
+  });
+
   it('should return all organizations when no filters applied', async () => {
     const orgs = await getOrganizations();
     expect(orgs.length).toBeGreaterThan(0);

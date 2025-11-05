@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,10 +22,10 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, activeRoute }: DashboardLayoutProps) {
   const router = useRouter();
+  const { data: session, status } = useSession();
 
-  function handleSignOut() {
-    // TODO: Implement sign out logic in Phase 2
-    alert("Sign out functionality coming soon!");
+  async function handleSignOut() {
+    await signOut({ callbackUrl: "/" });
   }
 
   return (
@@ -68,28 +69,38 @@ export function DashboardLayout({ children, activeRoute }: DashboardLayoutProps)
             />
           </div>
           
-          {/* Profile Dropdown - Right Side */}
+          {/* Profile Dropdown or Login Button - Right Side */}
           <div className="ml-auto">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <User className="h-4 w-4" />
-                  Profile
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => router.push('/settings?tab=profile')}>
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/settings')}>
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {status === "loading" ? (
+              <Button variant="outline" size="sm" disabled>
+                Loading...
+              </Button>
+            ) : session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <User className="h-4 w-4" />
+                    {session.user?.name || session.user?.email || "Profile"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => router.push('/settings?tab=profile')}>
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => router.push('/login')}>
+                Sign In
+              </Button>
+            )}
           </div>
         </header>
 

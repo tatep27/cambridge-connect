@@ -100,3 +100,15 @@ export interface ForumPostWithForum extends ForumPost {
   forumCategory: string;
 }
 
+/**
+ * User data structure
+ */
+export interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  organizationId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+

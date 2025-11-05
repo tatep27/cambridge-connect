@@ -183,14 +183,14 @@ export async function createForum(data: {
     
     const newForum = await prisma.forum.create({
       data: {
-        title: data.title,
-        category: data.category,
-        description: data.description,
+    title: data.title,
+    category: data.category,
+    description: data.description,
         createdAt: now,
-        postCount: 0,
+    postCount: 0,
         lastActivity: now,
-        memberCount: 1, // Creator is the first member
-        messagesToday: 0,
+    memberCount: 1, // Creator is the first member
+    messagesToday: 0,
       },
     });
 
