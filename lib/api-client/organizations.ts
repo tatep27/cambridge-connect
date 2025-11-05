@@ -5,7 +5,7 @@
  */
 
 import { Organization, OrgType } from '@/lib/types';
-import { apiGet } from './utils';
+import { apiGet, apiPost } from './utils';
 
 export interface OrganizationFilters {
   type?: OrgType[];
@@ -34,6 +34,32 @@ export async function getOrganizations(filters?: OrganizationFilters): Promise<O
  */
 export async function getOrganization(id: string): Promise<Organization> {
   return apiGet<Organization>(`/api/organizations/${id}`);
+}
+
+/**
+ * Create a new organization
+ */
+export interface CreateOrganizationInput {
+  name: string;
+  type: OrgType[];
+  description: string;
+  website?: string;
+  email?: string;
+  location?: string;
+  contactInternal: string;
+  currentNeedsInternal?: string;
+  resourcesOffered?: string;
+}
+
+export async function createOrganization(input: CreateOrganizationInput): Promise<Organization> {
+  return apiPost<Organization>('/api/organizations', input);
+}
+
+/**
+ * Join an existing organization
+ */
+export async function joinOrganization(organizationId: string): Promise<Organization> {
+  return apiPost<Organization>(`/api/organizations/${organizationId}/join`, {});
 }
 
 /**

@@ -92,4 +92,109 @@ export function getOrgTypes(): OrgType[] {
   return ["nonprofit", "public_library", "community_center", "grassroots", "arts_venue", "other"];
 }
 
+/**
+ * Create a new organization and link it to a user
+ */
+export interface CreateOrganizationInput {
+  name: string;
+  type: OrgType[];
+  description: string;
+  website?: string;
+  email?: string;
+  location?: string;
+  contactInternal: string;
+  currentNeedsInternal?: string;
+  resourcesOffered?: string;
+}
 
+export async function createOrganization(
+  input: CreateOrganizationInput,
+  userId: string
+): Promise<Organization> {
+  try {
+    // Validate required fields
+    if (!input.name.trim()) {
+      throw new Error("Organization name is required");
+    }
+    if (!input.type || input.type.length === 0) {
+      throw new Error("At least one organization type is required");
+    }
+    if (!input.description.trim()) {
+      throw new Error("Organization description is required");
+    }
+    if (!input.contactInternal.trim()) {
+      throw new Error("Contact information is required");
+    }
+
+    // Check if organization name already exists
+    const existingOrg = await prisma.organization.findFirst({
+      where: { name: { equals: input.name, mode: 'insensitive' } },
+    });
+
+    if (existingOrg) {
+      throw new Error("An organization with this name already exists");
+    }
+
+    // Create organization and link user in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the organization
+      const org = await tx.organization.create({
+        data: {
+          name: input.name.trim(),
+          type: JSON.stringify(input.type),
+          description: input.description.trim(),
+          website: input.website?.trim() || null,
+          email: input.email?.trim() || null,
+          location: input.location?.trim() || null,
+          contactInternal: input.contactInternal.trim(),
+          currentNeedsInternal: input.currentNeedsInternal?.trim() || "",
+          resourcesOffered: input.resourcesOffered?.trim() || "",
+        },
+      });
+
+      // Link user to organization
+      await tx.user.update({
+        where: { id: userId },
+        data: { organizationId: org.id },
+      });
+
+      return org;
+    });
+
+    return prismaOrgToTypeScript(result);
+  } catch (error: any) {
+    if (error.message.includes("already exists")) {
+      throw error; // Re-throw validation errors as-is
+    }
+    throw new Error(`Failed to create organization: ${error.message}`);
+  }
+}
+
+/**
+ * Join an existing organization (update user's organizationId)
+ */
+export async function joinOrganization(organizationId: string, userId: string): Promise<Organization> {
+  try {
+    // Verify organization exists
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!org) {
+      throw new Error("Organization not found");
+    }
+
+    // Update user's organizationId
+    await prisma.user.update({
+      where: { id: userId },
+      data: { organizationId },
+    });
+
+    return prismaOrgToTypeScript(org);
+  } catch (error: any) {
+    if (error.message.includes("not found")) {
+      throw error; // Re-throw validation errors as-is
+    }
+    throw new Error(`Failed to join organization: ${error.message}`);
+  }
+}

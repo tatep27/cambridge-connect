@@ -8,6 +8,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     globals: true,
+    // Note: Tests require DATABASE_URL to be set to a PostgreSQL connection string
+    // For local testing, you can use a PostgreSQL database or set up a test database
   },
   resolve: {
     alias: {
