@@ -24,6 +24,7 @@ export function JoinOrgForm({ onSuccess, onCancel }: JoinOrgFormProps) {
 
   useEffect(() => {
     loadOrganizations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadOrganizations() {

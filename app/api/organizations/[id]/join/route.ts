@@ -22,7 +22,7 @@ import { joinOrganization } from '@/lib/api/organizations';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -31,7 +31,7 @@ export async function POST(
       return errorResponse("Authentication required", 401);
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return errorResponse("Organization ID is required", 400);
